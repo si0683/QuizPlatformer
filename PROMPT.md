@@ -67,6 +67,7 @@
 
 ### Экраны и интерфейс
 - HTML-слои поверх `<canvas>`: меню (название из `LAB`, подпись «мир · предмет · способ ответа», рекорд, «Начать», «Настройки», подсказки по управлению), выбор сложности (3 карточки), вопрос, улучшения, настройки (мир, предмет, способ ответа — карточки; звук + громкость; сброс рекорда), пауза, GAME OVER (очки, рекорд, «Рестарт», «В меню»), отсчёт 3-2-1 (кроме Quiz Tower), всплывающие надписи.
+- ⚠️ Верхняя панель — сетка `grid-template-columns: 1fr auto 1fr` (у змейки `1fr 1fr`, вопрос — плашкой по центру): центральный блок **точно по центру**, все блоки и кнопка паузы одной высоты и на одной линии. Через `space-between` центр уезжал (до 46 px), высоты были разные. Экраны — `position: fixed` на всё окно; всплывающие надписи переносятся (`max-width: 92%`).
 - Стекло-панели `rgba(12,16,40,0.84)` + `backdrop-filter: blur`, объёмные кнопки (янтарная и бирюзовая), шрифты Russo One + Rubik через `@import` в CSS, адаптив `@media`.
 - `Esc`/`P` — пауза, автопауза при скрытии вкладки, после показа экрана `blur()` активной кнопки. Пока печатают ответ — клавиши игры не работают.
 - Сохранение в `localStorage` (`<игра>-settings`, `<игра>-best`) в `try/catch`.
@@ -118,9 +119,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Quiz Jump</title>
   <!-- Подключаем файл с оформлением.
-       ?v=1 — номер версии: меняем его при каждом обновлении игры,
+       ?v=2 — номер версии: меняем его при каждом обновлении игры,
        чтобы браузер не брал старый файл из кэша -->
-  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -307,7 +308,7 @@
 <!-- ↑↑↑ Для CodePen копируйте до этой строки (строку <script> ниже — НЕ копировать) ↑↑↑ -->
 
 <!-- Подключаем файл с логикой игры (номер версии — как у style.css) -->
-<script src="script.js?v=1"></script>
+<script src="script.js?v=2"></script>
 </body>
 </html>
 ````
@@ -1261,6 +1262,87 @@ kbd {
   .icon-btn {
     width: 34px;
     height: 34px;
+  }
+}
+
+/* =========================================================
+   РОВНАЯ ВЕРХНЯЯ ПАНЕЛЬ И ЭКРАНЫ
+   ========================================================= */
+
+/* Сетка: левая и правая колонки одинаковой ширины (1fr),
+   поэтому средний блок стоит точно по центру */
+.hud-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+}
+
+.hud-top > :first-child {
+  justify-self: start;
+}
+
+.hud-top > :last-child {
+  justify-self: end;
+}
+
+.hud-left,
+.hud-right {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+/* Все блоки одной высоты, содержимое по центру */
+.hud-top .hud-box {
+  justify-content: center;
+  min-width: 80px;
+  height: 54px;
+  text-align: center;
+}
+
+.hud-top .hud-label {
+  line-height: 16px;
+}
+
+.hud-top .icon-btn {
+  width: 54px;
+  height: 54px;
+}
+
+/* Экраны (меню, вопрос, улучшения, настройки…) — на всё окно,
+   даже если игровое поле на телефоне узкой полосой */
+.screen {
+  position: fixed;
+}
+
+/* Длинные подсказки переносятся, а не обрезаются краем экрана */
+.toast {
+  width: max-content;
+  max-width: 92%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.15;
+}
+
+@media (max-width: 700px) {
+  .hud-top .hud-box {
+    min-width: 0;
+    height: 38px;
+    padding: 2px 8px;
+  }
+
+  .hud-top .hud-label {
+    line-height: 12px;
+  }
+
+  .hud-top .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .hud-left,
+  .hud-right {
+    gap: 4px;
   }
 }
 ````
