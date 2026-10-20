@@ -528,6 +528,9 @@ function buildLevel() {
   flag = { x: finish.x + TILE * 13, y: GROUND_Y - TILE * 2 };
   levelEnd = finish.x + finish.w;
 
+  // Проверяем, что до каждой звезды можно добраться
+  placeStarsSafely();
+
   // Герой на старте
   hero.x = TILE;
   hero.y = GROUND_Y - hero.h;
@@ -535,6 +538,31 @@ function buildLevel() {
   hero.vy = 0;
   hero.checkpointX = hero.x;
   game.cameraX = 0;
+}
+
+// Звёзды ставятся в разных местах уровня и иногда попадают
+// внутрь ступеньки. Здесь каждая звезда проверяется:
+//   внутри блока → поднимаем на его верх;
+//   под ней пропасть → убираем;
+//   выше прыжка от опоры под ней → опускаем.
+function placeStarsSafely() {
+  const jumpHeight = hero.jump * hero.jump / (2 * GRAVITY); // высота прыжка
+  for (const s of stars) {
+    // Внутри твёрдого блока — ставим сверху на него
+    const inside = blocks.find(b => !b.oneWay && s.x > b.x && s.x < b.x + b.w && s.y > b.y - 20 && s.y < b.y + b.h);
+    if (inside) s.y = inside.y - 30;
+
+    // Опора под звездой: самый верхний блок ниже неё
+    const below = blocks.filter(b => s.x >= b.x && s.x <= b.x + b.w && b.y >= s.y);
+    if (below.length === 0) {
+      s.taken = true; // над пропастью — такую звезду не показываем
+      continue;
+    }
+    const floor = Math.min(...below.map(b => b.y));
+    const highest = floor - hero.h / 2 - jumpHeight + 20; // докуда достаёт герой
+    if (s.y < highest) s.y = highest;
+  }
+  stars = stars.filter(s => !s.taken);
 }
 
 function addEnemy(left, right, emoji, boss) {
