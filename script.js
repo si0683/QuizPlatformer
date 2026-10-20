@@ -544,7 +544,8 @@ function buildLevel() {
 // внутрь ступеньки. Здесь каждая звезда проверяется:
 //   внутри блока → поднимаем на его верх;
 //   под ней пропасть → убираем;
-//   выше прыжка от опоры под ней → опускаем.
+//   выше прыжка от опоры под ней → опускаем;
+//   ближе 30 пикселей к другой звезде → убираем (не накладываются).
 function placeStarsSafely() {
   const jumpHeight = hero.jump * hero.jump / (2 * GRAVITY); // высота прыжка
   for (const s of stars) {
@@ -563,6 +564,13 @@ function placeStarsSafely() {
     if (s.y < highest) s.y = highest;
   }
   stars = stars.filter(s => !s.taken);
+
+  // Убираем звёзды, которые налезают на уже оставленные
+  const kept = [];
+  for (const s of stars) {
+    if (!kept.some(k => Math.hypot(k.x - s.x, k.y - s.y) < 30)) kept.push(s);
+  }
+  stars = kept;
 }
 
 function addEnemy(left, right, emoji, boss) {
