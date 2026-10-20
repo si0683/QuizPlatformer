@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Quiz Jump</title>
+  <!-- Подключаем файл с оформлением.
+       ?v=1 — номер версии: меняем его при каждом обновлении игры,
+       чтобы браузер не брал старый файл из кэша -->
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+
+<!-- ↓↓↓ Для CodePen копируйте в окно HTML всё, что ниже этой строки ↓↓↓
+     Только эту часть! CodePen сам подключает style.css и script.js.
+     Если скопировать строки <link> или <script src>, игра загрузится дважды
+     и появится ошибка «Identifier ... has already been declared». -->
+
+<!-- «Сцена» — рамка игры. Внутри холст (canvas) и все экраны поверх него -->
+<div class="stage" id="stage">
+
+  <!-- Холст: здесь JavaScript рисует уровень, героя, врагов и ворота -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Панель во время игры -->
+  <div class="hud hidden" id="hud">
+    <div class="hud-top">
+      <div class="hud-left">
+        <div class="hud-box">
+          <span class="hud-label">Жизни</span>
+          <b class="hearts" id="lives">❤️❤️❤️</b>
+        </div>
+        <div class="hud-box">
+          <span class="hud-label" id="starLabel">⭐ Звёзды</span>
+          <b id="stars">0</b>
+        </div>
+      </div>
+      <div class="hud-box hud-center">
+        <span class="hud-label">Очки</span>
+        <b id="score">0</b>
+      </div>
+      <div class="hud-right">
+        <div class="hud-box">
+          <span class="hud-label">Уровень</span>
+          <b id="level">1</b>
+        </div>
+        <button class="icon-btn" id="pauseButton" type="button" aria-label="Пауза">
+          <svg viewBox="0 0 24 24" width="22" height="22"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- Улучшения, которые уже взяли -->
+    <div class="weapon" id="perkChips" style="bottom: 92px;"></div>
+    <!-- Кнопки для телефона: влево, вправо, прыжок -->
+    <div class="touch-controls">
+      <div class="touch-group">
+        <button class="touch-btn" id="leftButton" type="button" aria-label="Влево">◀</button>
+        <button class="touch-btn" id="rightButton" type="button" aria-label="Вправо">▶</button>
+      </div>
+      <button class="touch-btn" id="jumpButton" type="button" aria-label="Прыжок">⤒</button>
+    </div>
+  </div>
+
+  <!-- Обратный отсчёт 3 - 2 - 1 -->
+  <div class="countdown hidden" id="countdown"></div>
+
+  <!-- Всплывающая надпись -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ЭКРАН 1. Стартовое меню -->
+  <section class="screen" id="menuScreen">
+    <div class="card">
+      <h1 class="title">
+        <span class="title-top">Quiz</span>
+        <span class="title-bottom">Jump</span>
+      </h1>
+      <p class="subtitle" id="menuInfo">Прыгай, собирай звёзды и открывай ворота ответами!</p>
+      <div class="best">🏆 Рекорд: <b id="menuBest">0</b></div>
+      <div class="buttons">
+        <button class="btn" id="startButton" type="button">Начать</button>
+        <button class="btn btn-secondary" id="settingsButton" type="button">Настройки</button>
+      </div>
+      <div class="howto">
+        <div><kbd>←</kbd> <kbd>→</kbd> или <kbd>A</kbd> <kbd>D</kbd> — бег, <kbd>Пробел</kbd> или <kbd>↑</kbd> — прыжок</div>
+        <div>🚪 Ворота открываются только верным ответом</div>
+        <div>Прыгни врагу на голову — он исчезнет</div>
+        <div><kbd>Esc</kbd> — пауза</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 2. Выбор сложности -->
+  <section class="screen hidden" id="difficultyScreen">
+    <div class="card card-wide">
+      <h2 class="screen-title">Выбери сложность</h2>
+      <div class="choice-grid" id="difficultyChoices"></div>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 3. Вопрос (квиз) -->
+  <section class="screen hidden" id="quizScreen">
+    <div class="card quiz-card" id="quizCard">
+      <div class="quiz-subject" id="quizSubject">🧮 Математика</div>
+      <div class="quiz-question" id="quizQuestion">8 × 7 = ?</div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <form class="quiz-form hidden" id="quizForm" autocomplete="off">
+        <input class="quiz-input" id="quizInput" type="text" placeholder="Ответ" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <button class="btn btn-small" type="submit">Ответить ⏎</button>
+      </form>
+      <div class="quiz-hint" id="quizHint">Верный ответ откроет ворота!</div>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 4. Улучшения после волны -->
+  <section class="screen hidden" id="perkScreen">
+    <div class="card card-wide">
+      <h2 class="screen-title">Уровень пройден! Выбери улучшение</h2>
+      <div class="choice-grid" id="perkChoices"></div>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 5. Настройки -->
+  <section class="screen screen-settings hidden" id="settingsScreen">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h2>Настройки</h2>
+        <button class="icon-btn" id="settingsClose" type="button" aria-label="Закрыть">✕</button>
+      </div>
+
+      <div class="setting">
+        <h3>Мир</h3>
+        <div class="options options-cards" id="themeOptions"></div>
+      </div>
+
+      <div class="setting">
+        <h3>Предмет</h3>
+        <div class="options options-cards" id="subjectOptions"></div>
+      </div>
+
+      <div class="setting">
+        <h3>Как отвечать</h3>
+        <div class="options options-cards" id="inputOptions"></div>
+      </div>
+
+      <div class="setting">
+        <h3>Звук</h3>
+        <div class="row">
+          <label class="switch">
+            <input type="checkbox" id="soundToggle">
+            <span class="switch-slider"></span>
+          </label>
+          <input class="volume" type="range" id="volumeRange" min="0" max="100" step="5" aria-label="Громкость">
+        </div>
+      </div>
+
+      <div class="settings-footer">
+        <button class="btn btn-ghost btn-small" id="resetBestButton" type="button">Сбросить рекорд</button>
+        <button class="btn btn-small" id="settingsDone" type="button">Готово</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 6. Пауза -->
+  <section class="screen hidden" id="pauseScreen">
+    <div class="card">
+      <h2 class="screen-title">Пауза</h2>
+      <div class="buttons">
+        <button class="btn" id="resumeButton" type="button">Продолжить</button>
+        <button class="btn btn-secondary" id="pauseMenuButton" type="button">В меню</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 7. Игра окончена -->
+  <section class="screen hidden" id="gameOverScreen">
+    <div class="card">
+      <h2 class="over-title">GAME OVER</h2>
+      <div class="new-record hidden" id="newRecord">Новый рекорд!</div>
+      <div class="stats">
+        <div class="stat"><span>Очки</span><b id="finalScore">0</b></div>
+        <div class="stat"><span>Уровни</span><b id="finalLevels">0</b></div>
+        <div class="stat"><span>Ответы</span><b id="finalAnswers">0</b></div>
+      </div>
+      <div class="best">🏆 Рекорд: <b id="finalBest">0</b></div>
+      <div class="buttons">
+        <button class="btn" id="restartButton" type="button">Рестарт</button>
+        <button class="btn btn-secondary" id="overMenuButton" type="button">В меню</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ↑↑↑ Для CodePen копируйте до этой строки (строку <script> ниже — НЕ копировать) ↑↑↑ -->
+
+<!-- Подключаем файл с логикой игры (номер версии — как у style.css) -->
+<script src="script.js?v=1"></script>
+</body>
+</html>

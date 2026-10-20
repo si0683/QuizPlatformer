@@ -1,0 +1,948 @@
+/* =========================================================
+   QUIZ JUMP (ПЛАТФОРМЕР) — оформление (цвета, шрифты, экраны, кнопки)
+   ========================================================= */
+
+/* Шрифты Google Fonts: Russo One — заголовки и цифры, Rubik — текст */
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Rubik:wght@400;500;700&display=swap');
+
+/* ---------- Цвета игры (переменные) ---------- */
+/* --accent JavaScript меняет под выбранный мир */
+:root {
+  --bg: #070b1f;
+  --panel: rgba(12, 16, 40, 0.84);
+  --line: rgba(255, 255, 255, 0.14);
+  --text: #eef1ff;
+  --dim: #a7b0dd;
+  --accent: #00ffff;
+  --amber: #ffb84d;
+  --amber-light: #ffd27a;
+  --amber-dark: #d9821c;
+  --cyan: #4fd6e8;
+  --cyan-dark: #1f8a99;
+  --good: #39d97a;
+  --bad: #ff4d6d;
+  --outline: #0d1030;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 600px at 20% -10%, #1c2560 0%, transparent 60%),
+    radial-gradient(800px 600px at 100% 100%, #2a1450 0%, transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: 'Rubik', sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Сцена и холст ---------- */
+/* Размер сцены задаёт JavaScript (функция resizeGame) */
+.stage {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.6);
+  touch-action: none; /* чтобы касание не прокручивало страницу */
+}
+
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---------- Панель во время игры (HUD) ---------- */
+.hud {
+  position: absolute;
+  inset: 0;
+  padding: 12px;
+  pointer-events: none; /* касания проходят сквозь панель */
+}
+
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.hud-box {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+}
+
+.hud-label {
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hud-box b {
+  font-family: 'Russo One', sans-serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.hud-hp {
+  min-width: 140px;
+}
+
+.hud-hp b {
+  font-size: 14px;
+}
+
+.hud-center {
+  align-items: center;
+}
+
+.hud-center b {
+  color: var(--accent);
+  text-shadow: 0 0 12px var(--accent);
+}
+
+.hud-right {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.bar {
+  height: 10px;
+  margin: 5px 0 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--bad), #ff9f43, var(--good));
+  background-size: 300% 100%;
+  transition: width 0.25s;
+}
+
+.weapon {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 24px);
+}
+
+.chip {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.boss-bar {
+  position: absolute;
+  top: 78px;
+  left: 50%;
+  width: min(420px, 80%);
+  transform: translateX(-50%);
+  text-align: center;
+  font-family: 'Russo One', sans-serif;
+  font-size: 14px;
+  color: var(--bad);
+  text-shadow: 0 0 10px var(--bad);
+}
+
+.boss-bar .bar {
+  height: 12px;
+  border: 1px solid rgba(255, 77, 109, 0.6);
+}
+
+.boss-bar .bar-fill {
+  background: linear-gradient(90deg, #ff2a5c, #ff7a45);
+}
+
+.icon-btn {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+/* ---------- Экраны ---------- */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: radial-gradient(circle at 50% 45%, rgba(7, 11, 31, 0.3), rgba(7, 11, 31, 0.75));
+  animation: fadeIn 0.2s ease;
+}
+
+.card {
+  width: min(400px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 24px 22px;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: var(--panel);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  animation: rise 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.card-wide {
+  width: min(720px, 100%);
+}
+
+/* Заголовок игры с неоновым свечением в цвет мира */
+.title {
+  margin: 0 0 6px;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+  line-height: 0.95;
+}
+
+.title span {
+  display: block;
+  -webkit-text-stroke: 5px var(--outline);
+  paint-order: stroke fill;
+}
+
+.title-top {
+  font-size: 52px;
+  color: #fff;
+  text-shadow: 0 0 16px var(--accent), 0 6px 0 var(--outline);
+}
+
+.title-bottom {
+  font-size: 58px;
+  color: var(--accent);
+  text-shadow: 0 0 24px var(--accent), 0 6px 0 var(--outline);
+}
+
+.subtitle {
+  margin: 12px 0 14px;
+  color: var(--dim);
+  font-size: 15px;
+}
+
+.best {
+  display: inline-block;
+  margin-bottom: 18px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 184, 77, 0.12);
+  color: var(--amber);
+  font-weight: 500;
+}
+
+.screen-title {
+  margin: 0 0 16px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.howto {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+kbd {
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.22);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+}
+
+/* ---------- Кнопки (объёмные, «нажимаются» вниз) ---------- */
+.btn {
+  padding: 14px 28px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--amber-light), var(--amber));
+  box-shadow: 0 6px 0 var(--amber-dark), 0 12px 24px -6px rgba(0, 0, 0, 0.5);
+  color: #3b2300;
+  font-family: 'Russo One', sans-serif;
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.15s;
+}
+
+.btn:hover {
+  filter: brightness(1.07);
+}
+
+.btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--amber-dark);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, #7ae9f6, var(--cyan));
+  box-shadow: 0 6px 0 var(--cyan-dark), 0 12px 24px -6px rgba(0, 0, 0, 0.5);
+  color: #05303a;
+}
+
+.btn-secondary:active {
+  box-shadow: 0 2px 0 var(--cyan-dark);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  color: var(--dim);
+}
+
+.btn-ghost:active {
+  box-shadow: none;
+}
+
+.btn-small {
+  padding: 11px 18px;
+  font-size: 15px;
+}
+
+/* ---------- Карточки выбора: герои, сложность, улучшения ---------- */
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  border: 2px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.choice:hover,
+.choice:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 0 22px -4px var(--accent);
+  outline: none;
+}
+
+.choice-icon {
+  font-size: 46px;
+  line-height: 1.1;
+}
+
+.choice-title {
+  font-family: 'Russo One', sans-serif;
+  font-size: 18px;
+}
+
+.choice-desc {
+  color: var(--dim);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.choice-stats {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  margin-top: 4px;
+  font-size: 12px;
+  text-align: left;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-row span {
+  width: 64px;
+  color: var(--dim);
+}
+
+.stat-dots {
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+/* ---------- Окно вопроса ---------- */
+.quiz-card {
+  width: min(460px, 100%);
+  border-color: var(--accent);
+  box-shadow: 0 0 40px -10px var(--accent), 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+.quiz-subject {
+  color: var(--dim);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.quiz-question {
+  margin: 14px 0 18px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 40px;
+  letter-spacing: 0.04em;
+  word-break: break-word;
+}
+
+.quiz-question small {
+  display: block;
+  margin-top: 6px;
+  color: var(--dim);
+  font-family: 'Rubik', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.quiz-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.quiz-option {
+  min-height: 64px;
+  padding: 12px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  font-family: 'Russo One', sans-serif;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.quiz-option:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.quiz-option.right {
+  border-color: var(--good);
+  background: rgba(57, 217, 122, 0.3);
+}
+
+.quiz-option.wrong {
+  border-color: var(--bad);
+  background: rgba(255, 77, 109, 0.3);
+}
+
+.quiz-form {
+  display: flex;
+  gap: 10px;
+}
+
+.quiz-input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 2px solid var(--accent);
+  border-radius: 16px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-family: 'Russo One', sans-serif;
+  font-size: 24px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.quiz-hint {
+  margin-top: 14px;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+/* Окно мигает красным при неверном ответе и зелёным при верном */
+.quiz-card.flash-bad {
+  animation: flashBad 0.6s ease;
+}
+
+.quiz-card.flash-good {
+  animation: flashGood 0.5s ease;
+}
+
+/* ---------- Экран настроек ---------- */
+.screen-settings {
+  justify-content: flex-end;
+  align-items: stretch;
+  background: linear-gradient(90deg, transparent 30%, rgba(7, 11, 31, 0.6));
+}
+
+.settings-panel {
+  width: min(420px, 100%);
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  animation: slideIn 0.3s ease;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-family: 'Russo One', sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.setting {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.setting h3 {
+  margin: 0 0 10px;
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.options-cards .option {
+  flex: 1;
+  min-width: 100px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.option:hover {
+  transform: translateY(-2px);
+}
+
+.option.selected {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.option-icon {
+  font-size: 26px;
+}
+
+.option-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.settings-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+/* Переключатель (вкл/выкл) */
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: background 0.2s;
+}
+
+.switch-slider::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.switch input:checked + .switch-slider {
+  background: var(--amber);
+}
+
+.switch input:checked + .switch-slider::before {
+  transform: translateX(22px);
+}
+
+.volume {
+  flex: 1;
+  accent-color: var(--amber);
+}
+
+.volume:disabled {
+  opacity: 0.35;
+}
+
+/* ---------- Экран «Игра окончена» ---------- */
+.over-title {
+  margin: 0 0 14px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 46px;
+  font-weight: 400;
+  color: var(--bad);
+  -webkit-text-stroke: 4px var(--outline);
+  paint-order: stroke fill;
+  text-shadow: 0 0 24px var(--bad);
+}
+
+.stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.stat {
+  flex: 1;
+  padding: 10px 6px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.stat span {
+  display: block;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.stat b {
+  font-family: 'Russo One', sans-serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.new-record {
+  display: inline-block;
+  margin-bottom: 14px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--amber));
+  color: #10132e;
+  font-weight: 700;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ---------- Обратный отсчёт и всплывающая надпись ---------- */
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  font-family: 'Russo One', sans-serif;
+  font-size: 150px;
+  color: #fff;
+  -webkit-text-stroke: 6px var(--outline);
+  paint-order: stroke fill;
+  text-shadow: 0 0 30px var(--accent), 0 8px 0 var(--outline);
+}
+
+.countdown span {
+  animation: countPop 0.7s ease-out both;
+}
+
+.countdown .go {
+  font-size: 90px;
+  color: var(--accent);
+}
+
+.toast {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: 'Russo One', sans-serif;
+  font-size: 30px;
+  color: #fff;
+  -webkit-text-stroke: 4px var(--outline);
+  paint-order: stroke fill;
+  text-shadow: 0 0 18px var(--accent);
+}
+
+.toast.show {
+  animation: toast 1.6s ease both;
+}
+
+/* ---------- Анимации ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+@keyframes flashBad {
+  0%, 100% { background: var(--panel); }
+  20%, 60% { background: rgba(255, 77, 109, 0.75); }
+  40%, 80% { background: rgba(255, 77, 109, 0.25); }
+}
+
+@keyframes flashGood {
+  0%, 100% { background: var(--panel); }
+  40% { background: rgba(57, 217, 122, 0.6); }
+}
+
+@keyframes countPop {
+  0% { opacity: 0; transform: scale(2.2); }
+  30% { opacity: 1; transform: scale(1); }
+  80% { opacity: 1; transform: scale(0.95); }
+  100% { opacity: 0; transform: scale(0.7); }
+}
+
+@keyframes toast {
+  0% { opacity: 0; transform: translate(-50%, 20px) scale(0.8); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
+  25% { transform: translate(-50%, 0) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+/* ---------- Телефоны ---------- */
+@media (max-width: 640px) {
+  .screen-settings {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .settings-panel {
+    max-height: 80%;
+  }
+
+  .hud-hp {
+    min-width: 110px;
+  }
+
+  .hud-box b {
+    font-size: 18px;
+  }
+
+  .title-top { font-size: 42px; }
+  .title-bottom { font-size: 46px; }
+  .quiz-question { font-size: 32px; }
+  .quiz-option { font-size: 20px; }
+  .choice-grid { grid-template-columns: 1fr; }
+  .choice { flex-direction: row; text-align: left; }
+  .choice-icon { font-size: 38px; }
+  .countdown { font-size: 120px; }
+}
+
+/* Если в системе включено «уменьшить движение» */
+@media (prefers-reduced-motion: reduce) {
+  .new-record {
+    animation: none;
+  }
+}
+
+/* =========================================================
+   ДОПОЛНЕНИЯ ДЛЯ ПЛАТФОРМЕРА
+   ========================================================= */
+
+.hud-left,
+.hud-right {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.hearts {
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+/* Кнопки управления для телефона */
+.touch-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 14px;
+  pointer-events: none;
+}
+
+.touch-group {
+  display: flex;
+  gap: 12px;
+}
+
+.touch-btn {
+  width: 64px;
+  height: 64px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: rgba(12, 16, 40, 0.55);
+  color: #fff;
+  font-size: 26px;
+  pointer-events: auto;
+  touch-action: none;
+  backdrop-filter: blur(6px);
+}
+
+.touch-btn.pressed {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* На компьютере с мышью кнопки не нужны */
+@media (hover: hover) and (pointer: fine) {
+  .touch-controls {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .hud {
+    padding: 6px;
+  }
+
+  .hud-box {
+    padding: 3px 7px;
+  }
+
+  .hud-label {
+    font-size: 8px;
+  }
+
+  .hud-box b,
+  .hearts {
+    font-size: 14px;
+  }
+
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+}
