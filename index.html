@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Quiz Jump</title>
   <!-- Подключаем файл с оформлением.
-       ?v=6 — номер версии: меняем его при каждом обновлении игры,
+       ?v=7 — номер версии: меняем его при каждом обновлении игры,
        чтобы браузер не брал старый файл из кэша -->
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -92,7 +92,10 @@
   <!-- ЭКРАН 2. Выбор сложности -->
   <section class="screen hidden" id="difficultyScreen">
     <div class="card card-wide">
-      <h2 class="screen-title">Выбери сложность</h2>
+      <h2 class="screen-title">Выбери предмет и сложность</h2>
+      <h3 class="pick-title">Предмет</h3>
+      <div class="options options-cards subject-pick" id="subjectQuick"></div>
+      <h3 class="pick-title">Сложность</h3>
       <div class="choice-grid" id="difficultyChoices"></div>
     </div>
   </section>
@@ -194,6 +197,6 @@
 <!-- ↑↑↑ Для CodePen копируйте до этой строки (строку <script> ниже — НЕ копировать) ↑↑↑ -->
 
 <!-- Подключаем файл с логикой игры (номер версии — как у style.css) -->
-<script src="script.js?v=6"></script>
+<script src="script.js?v=7"></script>
 </body>
 </html>

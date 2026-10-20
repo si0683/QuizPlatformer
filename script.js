@@ -5,7 +5,7 @@
    Как устроен файл (читайте сверху вниз):
      0. Лаборатория: 10 настроек для экспериментов
      1. Данные: миры, предметы, сложность
-     2. Вопросы: математика, русский, английский
+     2. Вопросы: математика, русский, английский, история
      3. Улучшения (перки)
      4. Настройки игрока и рекорд
      5. Звуки
@@ -99,7 +99,8 @@ const THEMES = [
 const SUBJECTS = [
   { id: 'math', icon: '🧮', label: 'Математика', desc: 'Примеры' },
   { id: 'rus',  icon: '📝', label: 'Русский', desc: 'Пропущенная буква' },
-  { id: 'eng',  icon: '🇬🇧', label: 'Английский', desc: 'Перевод слов' }
+  { id: 'eng',  icon: '🔤', label: 'Английский', desc: 'Перевод слов' },
+  { id: 'hist', icon: '🏛️', label: 'История России', desc: 'Даты и люди' }
 ];
 
 const INPUT_MODES = [
@@ -153,6 +154,41 @@ const ENG_WORDS = [
   ['FATHER', 'Папа'], ['GREEN', 'Зелёный'], ['RED', 'Красный'], ['BIG', 'Большой'],
   ['MILK', 'Молоко'], ['BREAD', 'Хлеб'], ['SKY', 'Небо'], ['EARTH', 'Земля'],
   ['FLOWER', 'Цветок'], ['CAR', 'Машина']
+];
+
+// История России: вопрос, верный ответ, три неверных варианта
+// и короткие формы ответа, которые тоже засчитываются при вводе
+const HISTORY = [
+  ['Кто первым полетел в космос?', 'Гагарин', ['Титов', 'Леонов', 'Королёв'], ['Юрий Гагарин']],
+  ['В каком году Гагарин полетел в космос?', '1961', ['1957', '1965', '1945']],
+  ['Кто первым вышел в открытый космос?', 'Леонов', ['Гагарин', 'Титов', 'Терешкова'], ['Алексей Леонов']],
+  ['Кто первая женщина-космонавт?', 'Терешкова', ['Савицкая', 'Кондакова', 'Кикина'], ['Валентина Терешкова']],
+  ['В каком году запустили первый спутник Земли?', '1957', ['1961', '1945', '1969']],
+  ['Кто был главным конструктором первых ракет?', 'Королёв', ['Гагарин', 'Туполев', 'Калашников'], ['Сергей Королёв']],
+  ['Кто основал Санкт-Петербург?', 'Пётр I', ['Иван Грозный', 'Екатерина II', 'Александр I'], ['Пётр 1', 'Пётр Первый', 'Пётр']],
+  ['В каком году основан Санкт-Петербург?', '1703', ['1613', '1812', '1147']],
+  ['В каком году Москва впервые упомянута в летописи?', '1147', ['988', '1240', '1380']],
+  ['Кто основал Москву?', 'Юрий Долгорукий', ['Иван Калита', 'Дмитрий Донской', 'Ярослав Мудрый'], ['Долгорукий']],
+  ['В каком году крестили Русь?', '988', ['1147', '862', '1380']],
+  ['Какой князь крестил Русь?', 'Владимир', ['Олег', 'Игорь', 'Святослав'], ['Князь Владимир']],
+  ['В каком году была Куликовская битва?', '1380', ['1242', '1612', '1812']],
+  ['Кто победил на Куликовом поле?', 'Дмитрий Донской', ['Александр Невский', 'Иван III', 'Пётр I'], ['Донской']],
+  ['Кто победил в Ледовом побоище?', 'Александр Невский', ['Дмитрий Донской', 'Юрий Долгорукий', 'Владимир'], ['Невский']],
+  ['В каком году было Ледовое побоище?', '1242', ['1240', '1380', '1480']],
+  ['Кто стал первым русским царём?', 'Иван Грозный', ['Пётр I', 'Михаил Романов', 'Борис Годунов'], ['Грозный', 'Иван IV', 'Иван 4']],
+  ['Кто освободил Москву в 1612 году?', 'Минин и Пожарский', ['Кутузов', 'Суворов', 'Ермак'], ['Минин', 'Пожарский']],
+  ['В каком году была война с Наполеоном?', '1812', ['1612', '1914', '1941']],
+  ['Кто командовал русской армией в 1812 году?', 'Кутузов', ['Суворов', 'Жуков', 'Багратион']],
+  ['В каком году началась Великая Отечественная война?', '1941', ['1939', '1914', '1945']],
+  ['В каком году закончилась Великая Отечественная война?', '1945', ['1941', '1943', '1918']],
+  ['Какого числа празднуют День Победы?', '9 мая', ['12 июня', '4 ноября', '23 февраля']],
+  ['Какого числа празднуют День России?', '12 июня', ['9 мая', '4 ноября', '1 сентября']],
+  ['Кто создал таблицу химических элементов?', 'Менделеев', ['Ломоносов', 'Павлов', 'Королёв']],
+  ['По чьей идее открыли Московский университет?', 'Ломоносов', ['Менделеев', 'Пушкин', 'Пётр I']],
+  ['С какого царя началась династия Романовых?', 'Михаил', ['Пётр', 'Иван', 'Алексей'], ['Михаил Романов', 'Михаил Фёдорович']],
+  ['Как звали последнего российского императора?', 'Николай II', ['Александр III', 'Пётр III', 'Павел I'], ['Николай 2', 'Николай Второй', 'Николай']],
+  ['Какой город стал столицей при Петре I?', 'Санкт-Петербург', ['Новгород', 'Казань', 'Владимир'], ['Петербург', 'Питер', 'СПб']],
+  ['Кто написал «Повесть временных лет»?', 'Нестор', ['Пимен', 'Кирилл', 'Мефодий'], ['Летописец Нестор']]
 ];
 
 let questionPool = [];
@@ -211,6 +247,17 @@ function makeEngQuestion([word, translation]) {
   return { text: word, hint: 'Переведи на русский', answer: translation, options: shuffle([translation, ...wrong]) };
 }
 
+function makeHistoryQuestion([text, answer, wrong, accept]) {
+  return {
+    text: text,
+    hint: /^\d+$/.test(answer) ? 'Напиши год' : '',
+    answer: answer,
+    accept: accept || [],                 // другие правильные формы ответа
+    options: shuffle([answer, ...wrong]),
+    numeric: /^\d+$/.test(answer)
+  };
+}
+
 // Пул из 20+ заданий для выбранного предмета
 function buildQuestionPool() {
   const subject = settings.subject;
@@ -218,6 +265,8 @@ function buildQuestionPool() {
     questionPool = shuffle(RUS_WORDS).map(makeRusQuestion);
   } else if (subject === 'eng') {
     questionPool = shuffle(ENG_WORDS).map(makeEngQuestion);
+  } else if (subject === 'hist') {
+    questionPool = shuffle(HISTORY).map(makeHistoryQuestion);
   } else {
     const level = DIFFICULTIES.indexOf(findById(DIFFICULTIES, settings.difficulty));
     questionPool = [];
@@ -233,6 +282,12 @@ function nextQuestion() {
 // Сравнение ответов: без пробелов, без разницы в регистре, Ё = Е
 function normalize(text) {
   return String(text).trim().toUpperCase().replace(/Ё/g, 'Е');
+}
+
+// Верный ли ответ: совпадает с ответом или с одной из его коротких форм
+function isRightAnswer(question, text) {
+  const value = normalize(text);
+  return [question.answer, ...(question.accept || [])].some(a => normalize(a) === value);
 }
 
 
@@ -887,6 +942,9 @@ function openQuiz(hintText, onAnswer) {
   document.getElementById('quizSubject').textContent = subject.icon + ' ' + subject.label;
   document.getElementById('quizQuestion').innerHTML = currentQuestion.text +
     (currentQuestion.hint ? '<small>' + currentQuestion.hint + '</small>' : '');
+  // Длинный вопрос (история) — шрифт поменьше
+  document.getElementById('quizQuestion').classList.toggle('long', currentQuestion.text.length > 12);
+  document.getElementById('quizOptions').classList.toggle('long', currentQuestion.options.some(o => o.length > 9));
   document.getElementById('quizHint').textContent = hintText;
   document.getElementById('quizCard').classList.remove('flash-bad', 'flash-good');
 
@@ -927,7 +985,7 @@ function openQuiz(hintText, onAnswer) {
 
 function answerQuiz(text, button) {
   if (quizLocked || game.state !== 'quiz') return;
-  const correct = normalize(text) === normalize(currentQuestion.answer);
+  const correct = isRightAnswer(currentQuestion, text);
   const card = document.getElementById('quizCard');
 
   // «Вторая попытка»: первая ошибка не считается
@@ -1149,7 +1207,27 @@ function resetGame() {
   updateHud();
 }
 
+// Быстрый выбор предмета прямо на экране сложности
+function buildSubjectQuick() {
+  const box = document.getElementById('subjectQuick');
+  box.innerHTML = '';
+  for (const item of SUBJECTS) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'option' + (settings.subject === item.id ? ' selected' : '');
+    button.innerHTML = '<span class="option-icon">' + item.icon + '</span><span class="option-title">' + item.label + '</span>';
+    button.addEventListener('click', () => {
+      settings.subject = item.id;
+      saveSettings();
+      applyTheme();
+      buildSubjectQuick();
+    });
+    box.appendChild(button);
+  }
+}
+
 function openDifficultySelect() {
+  buildSubjectQuick();
   game.state = 'choose';
   const box = document.getElementById('difficultyChoices');
   box.innerHTML = '';

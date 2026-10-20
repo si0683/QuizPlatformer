@@ -1027,3 +1027,57 @@ kbd {
     gap: 4px;
   }
 }
+
+/* ---------- Предмет на экране сложности и длинные вопросы ---------- */
+.pick-title {
+  margin: 4px 0 10px;
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.subject-pick {
+  margin-bottom: 16px;
+}
+
+/* Предметы ровной сеткой: 4 в ряд, на телефоне 2 × 2 */
+.subject-pick,
+#subjectOptions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#subjectOptions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 560px) {
+  .subject-pick {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Длинный вопрос (история) — шрифт меньше, переносится по словам */
+.quiz-question.long {
+  font-size: 26px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+/* Длинные варианты ответа — шрифт меньше */
+.quiz-options.long .quiz-option {
+  font-size: 17px;
+}
+
+@media (max-width: 640px) {
+  .quiz-question.long {
+    font-size: 21px;
+  }
+
+  .quiz-options.long .quiz-option {
+    font-size: 15px;
+  }
+}

@@ -20,7 +20,7 @@
 - светящиеся ворота 🚪 от неба до земли открываются только верным ответом на вопрос, ворота — точка сохранения;
 - в конце уровня флаг 🏁 и выбор улучшения (двойной прыжок, парение, магнит и др.), каждый 3-й уровень — босс: прыжок ему на голову = вопрос;
 - кнопки ◀ ▶ ⤒ на телефоне, «время койота» и буфер прыжка для честного управления;
-- 3 мира: Фэнтези, Космос, Эко-Панк; предметы: математика, русский, английский; ответ кнопками или вводом.
+- 3 мира: Фэнтези, Космос, Эко-Панк; предметы: математика, русский, английский, история России; ответ кнопками или вводом.
 
 ## Лаборатория (раздел 0 в начале `script.js`)
 
@@ -68,7 +68,10 @@
 Герои миров: Фэнтези 🤺 🧙 🧝‍♂️, Космос 🧑‍🚀 🤖 👽, Эко-Панк 🧑‍🌾 🐼 🦉. Акцент мира пишется в CSS-переменную `--accent`.
 
 ### Квиз (раздел «Вопросы» одинаковый во всех играх)
-- Предметы (`SUBJECTS`): 🧮 Математика (пул из 20 случайных примеров: сложение, вычитание без отрицательных ответов, умножение; числа растут со сложностью), 📝 Русский (28 словарных слов с пропущенной гласной: `М_ЛОКО`), 🇬🇧 Английский (26 слов для перевода: `SPACE → Космос`).
+- Предметы (`SUBJECTS`): 🧮 Математика (пул из 20 случайных примеров: сложение, вычитание без отрицательных ответов, умножение; числа растут со сложностью), 📝 Русский (28 словарных слов с пропущенной гласной: `М_ЛОКО`), 🔤 Английский (26 слов для перевода: `SPACE → Космос`), 🏛️ История России (30 вопросов: космос, основание городов, князья и цари, войны, праздники, учёные; `HISTORY`: вопрос, ответ, 3 неверных, короткие формы ответа).
+- ⚠️ Проверка ответа `isRightAnswer(question, text)`: засчитывается ответ и его короткие формы (`accept`), например «Гагарин» и «Юрий Гагарин», «Пётр I» и «Пётр 1». Для вопросов-лет подсказка «Напиши год» и цифровая клавиатура.
+- ⚠️ Предмет выбирается не только в «Настройках», но и **на экране сложности** (строка «Предмет», `buildSubjectQuick`), иначе его не находят и играют только с математикой. Иконка английского — 🔤 (флаг 🇬🇧 в Windows рисуется буквами «GB»).
+- Длинный вопрос (> 12 символов) — класс `long` (шрифт 26 px, перенос по словам); длинные варианты (> 9 символов) — шрифт 17 px. В змейке длинный вопрос в плашке переносится, пузыри ответов не ставятся ближе 4 клеток друг к другу.
 - Задания перемешиваются и идут по очереди (`questionPool`), пул пересобирается, когда кончился. 4 варианта: верный + 3 неверных (близкие числа / другие гласные / другие переводы).
 - Способ ответа (`INPUT_MODES`): **Кнопки** — 4 большие кнопки (клавиши `1`–`4`); **Ввод** — поле `<input>` + Enter, ⚠️ автофокус при открытии, `inputMode = numeric` для математики. Сравнение `normalize()`: без пробелов, без регистра, Ё = Е.
 - ⚠️ Пока открыт вопрос — **жёсткая пауза** (мир не двигается). Неверно — окно мигает красным, подсвечивается/пишется правильный ответ (1.1 с). Верно — зелёная вспышка (0.5 с) и награда своей игры.
@@ -128,9 +131,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Quiz Jump</title>
   <!-- Подключаем файл с оформлением.
-       ?v=6 — номер версии: меняем его при каждом обновлении игры,
+       ?v=7 — номер версии: меняем его при каждом обновлении игры,
        чтобы браузер не брал старый файл из кэша -->
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -215,7 +218,10 @@
   <!-- ЭКРАН 2. Выбор сложности -->
   <section class="screen hidden" id="difficultyScreen">
     <div class="card card-wide">
-      <h2 class="screen-title">Выбери сложность</h2>
+      <h2 class="screen-title">Выбери предмет и сложность</h2>
+      <h3 class="pick-title">Предмет</h3>
+      <div class="options options-cards subject-pick" id="subjectQuick"></div>
+      <h3 class="pick-title">Сложность</h3>
       <div class="choice-grid" id="difficultyChoices"></div>
     </div>
   </section>
@@ -317,7 +323,7 @@
 <!-- ↑↑↑ Для CodePen копируйте до этой строки (строку <script> ниже — НЕ копировать) ↑↑↑ -->
 
 <!-- Подключаем файл с логикой игры (номер версии — как у style.css) -->
-<script src="script.js?v=6"></script>
+<script src="script.js?v=7"></script>
 </body>
 </html>
 ````
@@ -1354,6 +1360,60 @@ kbd {
     gap: 4px;
   }
 }
+
+/* ---------- Предмет на экране сложности и длинные вопросы ---------- */
+.pick-title {
+  margin: 4px 0 10px;
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.subject-pick {
+  margin-bottom: 16px;
+}
+
+/* Предметы ровной сеткой: 4 в ряд, на телефоне 2 × 2 */
+.subject-pick,
+#subjectOptions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#subjectOptions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 560px) {
+  .subject-pick {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Длинный вопрос (история) — шрифт меньше, переносится по словам */
+.quiz-question.long {
+  font-size: 26px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+/* Длинные варианты ответа — шрифт меньше */
+.quiz-options.long .quiz-option {
+  font-size: 17px;
+}
+
+@media (max-width: 640px) {
+  .quiz-question.long {
+    font-size: 21px;
+  }
+
+  .quiz-options.long .quiz-option {
+    font-size: 15px;
+  }
+}
 ````
 
 ### `script.js`
@@ -1366,7 +1426,7 @@ kbd {
    Как устроен файл (читайте сверху вниз):
      0. Лаборатория: 10 настроек для экспериментов
      1. Данные: миры, предметы, сложность
-     2. Вопросы: математика, русский, английский
+     2. Вопросы: математика, русский, английский, история
      3. Улучшения (перки)
      4. Настройки игрока и рекорд
      5. Звуки
@@ -1460,7 +1520,8 @@ const THEMES = [
 const SUBJECTS = [
   { id: 'math', icon: '🧮', label: 'Математика', desc: 'Примеры' },
   { id: 'rus',  icon: '📝', label: 'Русский', desc: 'Пропущенная буква' },
-  { id: 'eng',  icon: '🇬🇧', label: 'Английский', desc: 'Перевод слов' }
+  { id: 'eng',  icon: '🔤', label: 'Английский', desc: 'Перевод слов' },
+  { id: 'hist', icon: '🏛️', label: 'История России', desc: 'Даты и люди' }
 ];
 
 const INPUT_MODES = [
@@ -1514,6 +1575,41 @@ const ENG_WORDS = [
   ['FATHER', 'Папа'], ['GREEN', 'Зелёный'], ['RED', 'Красный'], ['BIG', 'Большой'],
   ['MILK', 'Молоко'], ['BREAD', 'Хлеб'], ['SKY', 'Небо'], ['EARTH', 'Земля'],
   ['FLOWER', 'Цветок'], ['CAR', 'Машина']
+];
+
+// История России: вопрос, верный ответ, три неверных варианта
+// и короткие формы ответа, которые тоже засчитываются при вводе
+const HISTORY = [
+  ['Кто первым полетел в космос?', 'Гагарин', ['Титов', 'Леонов', 'Королёв'], ['Юрий Гагарин']],
+  ['В каком году Гагарин полетел в космос?', '1961', ['1957', '1965', '1945']],
+  ['Кто первым вышел в открытый космос?', 'Леонов', ['Гагарин', 'Титов', 'Терешкова'], ['Алексей Леонов']],
+  ['Кто первая женщина-космонавт?', 'Терешкова', ['Савицкая', 'Кондакова', 'Кикина'], ['Валентина Терешкова']],
+  ['В каком году запустили первый спутник Земли?', '1957', ['1961', '1945', '1969']],
+  ['Кто был главным конструктором первых ракет?', 'Королёв', ['Гагарин', 'Туполев', 'Калашников'], ['Сергей Королёв']],
+  ['Кто основал Санкт-Петербург?', 'Пётр I', ['Иван Грозный', 'Екатерина II', 'Александр I'], ['Пётр 1', 'Пётр Первый', 'Пётр']],
+  ['В каком году основан Санкт-Петербург?', '1703', ['1613', '1812', '1147']],
+  ['В каком году Москва впервые упомянута в летописи?', '1147', ['988', '1240', '1380']],
+  ['Кто основал Москву?', 'Юрий Долгорукий', ['Иван Калита', 'Дмитрий Донской', 'Ярослав Мудрый'], ['Долгорукий']],
+  ['В каком году крестили Русь?', '988', ['1147', '862', '1380']],
+  ['Какой князь крестил Русь?', 'Владимир', ['Олег', 'Игорь', 'Святослав'], ['Князь Владимир']],
+  ['В каком году была Куликовская битва?', '1380', ['1242', '1612', '1812']],
+  ['Кто победил на Куликовом поле?', 'Дмитрий Донской', ['Александр Невский', 'Иван III', 'Пётр I'], ['Донской']],
+  ['Кто победил в Ледовом побоище?', 'Александр Невский', ['Дмитрий Донской', 'Юрий Долгорукий', 'Владимир'], ['Невский']],
+  ['В каком году было Ледовое побоище?', '1242', ['1240', '1380', '1480']],
+  ['Кто стал первым русским царём?', 'Иван Грозный', ['Пётр I', 'Михаил Романов', 'Борис Годунов'], ['Грозный', 'Иван IV', 'Иван 4']],
+  ['Кто освободил Москву в 1612 году?', 'Минин и Пожарский', ['Кутузов', 'Суворов', 'Ермак'], ['Минин', 'Пожарский']],
+  ['В каком году была война с Наполеоном?', '1812', ['1612', '1914', '1941']],
+  ['Кто командовал русской армией в 1812 году?', 'Кутузов', ['Суворов', 'Жуков', 'Багратион']],
+  ['В каком году началась Великая Отечественная война?', '1941', ['1939', '1914', '1945']],
+  ['В каком году закончилась Великая Отечественная война?', '1945', ['1941', '1943', '1918']],
+  ['Какого числа празднуют День Победы?', '9 мая', ['12 июня', '4 ноября', '23 февраля']],
+  ['Какого числа празднуют День России?', '12 июня', ['9 мая', '4 ноября', '1 сентября']],
+  ['Кто создал таблицу химических элементов?', 'Менделеев', ['Ломоносов', 'Павлов', 'Королёв']],
+  ['По чьей идее открыли Московский университет?', 'Ломоносов', ['Менделеев', 'Пушкин', 'Пётр I']],
+  ['С какого царя началась династия Романовых?', 'Михаил', ['Пётр', 'Иван', 'Алексей'], ['Михаил Романов', 'Михаил Фёдорович']],
+  ['Как звали последнего российского императора?', 'Николай II', ['Александр III', 'Пётр III', 'Павел I'], ['Николай 2', 'Николай Второй', 'Николай']],
+  ['Какой город стал столицей при Петре I?', 'Санкт-Петербург', ['Новгород', 'Казань', 'Владимир'], ['Петербург', 'Питер', 'СПб']],
+  ['Кто написал «Повесть временных лет»?', 'Нестор', ['Пимен', 'Кирилл', 'Мефодий'], ['Летописец Нестор']]
 ];
 
 let questionPool = [];
@@ -1572,6 +1668,17 @@ function makeEngQuestion([word, translation]) {
   return { text: word, hint: 'Переведи на русский', answer: translation, options: shuffle([translation, ...wrong]) };
 }
 
+function makeHistoryQuestion([text, answer, wrong, accept]) {
+  return {
+    text: text,
+    hint: /^\d+$/.test(answer) ? 'Напиши год' : '',
+    answer: answer,
+    accept: accept || [],                 // другие правильные формы ответа
+    options: shuffle([answer, ...wrong]),
+    numeric: /^\d+$/.test(answer)
+  };
+}
+
 // Пул из 20+ заданий для выбранного предмета
 function buildQuestionPool() {
   const subject = settings.subject;
@@ -1579,6 +1686,8 @@ function buildQuestionPool() {
     questionPool = shuffle(RUS_WORDS).map(makeRusQuestion);
   } else if (subject === 'eng') {
     questionPool = shuffle(ENG_WORDS).map(makeEngQuestion);
+  } else if (subject === 'hist') {
+    questionPool = shuffle(HISTORY).map(makeHistoryQuestion);
   } else {
     const level = DIFFICULTIES.indexOf(findById(DIFFICULTIES, settings.difficulty));
     questionPool = [];
@@ -1594,6 +1703,12 @@ function nextQuestion() {
 // Сравнение ответов: без пробелов, без разницы в регистре, Ё = Е
 function normalize(text) {
   return String(text).trim().toUpperCase().replace(/Ё/g, 'Е');
+}
+
+// Верный ли ответ: совпадает с ответом или с одной из его коротких форм
+function isRightAnswer(question, text) {
+  const value = normalize(text);
+  return [question.answer, ...(question.accept || [])].some(a => normalize(a) === value);
 }
 
 
@@ -2248,6 +2363,9 @@ function openQuiz(hintText, onAnswer) {
   document.getElementById('quizSubject').textContent = subject.icon + ' ' + subject.label;
   document.getElementById('quizQuestion').innerHTML = currentQuestion.text +
     (currentQuestion.hint ? '<small>' + currentQuestion.hint + '</small>' : '');
+  // Длинный вопрос (история) — шрифт поменьше
+  document.getElementById('quizQuestion').classList.toggle('long', currentQuestion.text.length > 12);
+  document.getElementById('quizOptions').classList.toggle('long', currentQuestion.options.some(o => o.length > 9));
   document.getElementById('quizHint').textContent = hintText;
   document.getElementById('quizCard').classList.remove('flash-bad', 'flash-good');
 
@@ -2288,7 +2406,7 @@ function openQuiz(hintText, onAnswer) {
 
 function answerQuiz(text, button) {
   if (quizLocked || game.state !== 'quiz') return;
-  const correct = normalize(text) === normalize(currentQuestion.answer);
+  const correct = isRightAnswer(currentQuestion, text);
   const card = document.getElementById('quizCard');
 
   // «Вторая попытка»: первая ошибка не считается
@@ -2510,7 +2628,27 @@ function resetGame() {
   updateHud();
 }
 
+// Быстрый выбор предмета прямо на экране сложности
+function buildSubjectQuick() {
+  const box = document.getElementById('subjectQuick');
+  box.innerHTML = '';
+  for (const item of SUBJECTS) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'option' + (settings.subject === item.id ? ' selected' : '');
+    button.innerHTML = '<span class="option-icon">' + item.icon + '</span><span class="option-title">' + item.label + '</span>';
+    button.addEventListener('click', () => {
+      settings.subject = item.id;
+      saveSettings();
+      applyTheme();
+      buildSubjectQuick();
+    });
+    box.appendChild(button);
+  }
+}
+
 function openDifficultySelect() {
+  buildSubjectQuick();
   game.state = 'choose';
   const box = document.getElementById('difficultyChoices');
   box.innerHTML = '';
