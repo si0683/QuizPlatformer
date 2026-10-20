@@ -45,6 +45,7 @@
 - Ворота каждые `gateEvery` клеток в середине куска земли, **от неба до земли** (не перепрыгнуть даже двойным прыжком). Касание → вопрос. Верно → ворота открыты, +50, точка сохранения на месте ворот. Неверно → замок 🔒 на 2 с и отбрасывание.
 - Упал в яму → −1 жизнь, возврат на точку сохранения, ставится на самый верхний блок под ней. Враг сбоку → −1 жизнь и отбрасывание (щит спасает), сверху → враг побеждён, отскок.
 - Каждый 3-й уровень — босс перед флагом (3 сердца). Прыжок ему на голову → вопрос: верно −1 сердце, неверно — удар по герою. Флаг работает только когда босс побеждён. Флаг → очки 200·уровень, выбор улучшения (10: двойной прыжок, высокий прыжок, скорость, +1 жизнь, магнит звёзд, щит, парение, очки ×2, подсказка 50/50, вторая попытка ответа) → следующий уровень.
+- ⚠️ Эмодзи-персонажи по умолчанию смотрят **влево**. Поэтому героя зеркалим, когда он идёт **вправо** (`hero.facing > 0`), врагов — когда `dir > 0`. С обратным условием герой бежал вправо, а смотрел влево.
 - Телефон: кнопки ◀ ▶ ⤒ (скрыты на компьютере через `@media (hover: hover) and (pointer: fine)`).
 
 ## Общее для всех пяти игр (Quiz Shooter, Quiz Tower, Quiz Snake, Quiz Jump, Quiz Breakout)
@@ -119,9 +120,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Quiz Jump</title>
   <!-- Подключаем файл с оформлением.
-       ?v=2 — номер версии: меняем его при каждом обновлении игры,
+       ?v=3 — номер версии: меняем его при каждом обновлении игры,
        чтобы браузер не брал старый файл из кэша -->
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -308,7 +309,7 @@
 <!-- ↑↑↑ Для CodePen копируйте до этой строки (строку <script> ниже — НЕ копировать) ↑↑↑ -->
 
 <!-- Подключаем файл с логикой игры (номер версии — как у style.css) -->
-<script src="script.js?v=2"></script>
+<script src="script.js?v=3"></script>
 </body>
 </html>
 ````
@@ -2081,6 +2082,7 @@ function drawEnemies() {
     if (x < -120 || x > W + 120) continue;
     if (e.boss) drawGlow(x + e.w / 2, e.y + e.h / 2, e.w, 'rgba(255,60,90,0.35)');
     if (e.hurt > 0 && Math.floor(game.time * 20) % 2 === 0) ctx.globalAlpha = 0.4;
+    // Как и у героя: идёт вправо — зеркалим, чтобы смотрел вправо
     drawEmoji(e.emoji, x + e.w / 2, e.y + e.h / 2, e.w * 1.05, e.dir > 0);
     ctx.globalAlpha = 1;
     if (e.boss) {
@@ -2097,7 +2099,8 @@ function drawHero() {
   if (hero.hurt > 0 && Math.floor(game.time * 15) % 2 === 0) ctx.globalAlpha = 0.35;
   drawGlow(x + hero.w / 2, hero.y + hero.h / 2, 46, hexToRgba(currentTheme().accent, 0.3));
   const squash = hero.onGround ? 1 : 1.06;
-  drawEmoji(heroEmoji(), x + hero.w / 2, hero.y + hero.h / 2, 46 * squash, hero.facing < 0);
+  // Эмодзи-персонажи смотрят влево, поэтому зеркалим, когда герой идёт вправо
+  drawEmoji(heroEmoji(), x + hero.w / 2, hero.y + hero.h / 2, 46 * squash, hero.facing > 0);
   ctx.globalAlpha = 1;
   if (hero.shield) {
     ctx.strokeStyle = 'rgba(127,220,255,0.8)';

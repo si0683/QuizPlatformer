@@ -729,6 +729,7 @@ function drawEnemies() {
     if (x < -120 || x > W + 120) continue;
     if (e.boss) drawGlow(x + e.w / 2, e.y + e.h / 2, e.w, 'rgba(255,60,90,0.35)');
     if (e.hurt > 0 && Math.floor(game.time * 20) % 2 === 0) ctx.globalAlpha = 0.4;
+    // Как и у героя: идёт вправо — зеркалим, чтобы смотрел вправо
     drawEmoji(e.emoji, x + e.w / 2, e.y + e.h / 2, e.w * 1.05, e.dir > 0);
     ctx.globalAlpha = 1;
     if (e.boss) {
@@ -745,7 +746,8 @@ function drawHero() {
   if (hero.hurt > 0 && Math.floor(game.time * 15) % 2 === 0) ctx.globalAlpha = 0.35;
   drawGlow(x + hero.w / 2, hero.y + hero.h / 2, 46, hexToRgba(currentTheme().accent, 0.3));
   const squash = hero.onGround ? 1 : 1.06;
-  drawEmoji(heroEmoji(), x + hero.w / 2, hero.y + hero.h / 2, 46 * squash, hero.facing < 0);
+  // Эмодзи-персонажи смотрят влево, поэтому зеркалим, когда герой идёт вправо
+  drawEmoji(heroEmoji(), x + hero.w / 2, hero.y + hero.h / 2, 46 * squash, hero.facing > 0);
   ctx.globalAlpha = 1;
   if (hero.shield) {
     ctx.strokeStyle = 'rgba(127,220,255,0.8)';
