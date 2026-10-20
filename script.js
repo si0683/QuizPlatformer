@@ -475,8 +475,10 @@ function buildLevel() {
       if (gap >= 2 && Math.random() < 0.5) {
         // oneWay: сквозь платформу можно пролететь снизу, а встать — сверху
         const py = GROUND_Y - TILE * 2.5;
-        blocks.push({ x: x + TILE * 0.5, y: py, w: TILE * gap, h: TILE * 0.4, oneWay: true });
-        for (let i = 0; i < gap; i++) stars.push({ x: x + TILE * (i + 1), y: py - 30, taken: false });
+        const platform = { x: x + TILE * 0.5, y: py, w: TILE * gap, h: TILE * 0.4, oneWay: true };
+        blocks.push(platform);
+        // Звёзды ровным рядом по центру платформы
+        addStarRow(platform.x + platform.w / 2, py - 32, gap, 0);
       }
       x += gap * TILE;
     }
@@ -486,36 +488,53 @@ function buildLevel() {
     const chunk = { x: x, y: GROUND_Y, w: length * TILE, h: TILE * 2 };
     blocks.push(chunk);
 
-    // Будут ли на этом куске ворота с вопросом (ставим их в середину)
-    const tileIndex = Math.round(x / TILE);
-    const hasGate = tileIndex + length / 2 >= nextGate && length >= 8;
-    const gateX = x + Math.round(length / 2) * TILE;
+    // Клетки куска, где уже что-то стоит (ворота, ступенька) —
+    // туда не ставим звёзды и не пускаем врагов
+    const busy = new Set();
 
-    // Ступенька на земле — не у краёв куска и не рядом с воротами
-    if (length >= 9 && Math.random() < 0.5) {
-      const stepH = Math.random() < 0.5 ? 1 : 2;
-      const sx = x + TILE * Math.round(rand(3, length - 5));
-      if (!hasGate || Math.abs(sx - gateX) >= TILE * 3) {
-        blocks.push({ x: sx, y: GROUND_Y - stepH * TILE, w: TILE * 2, h: stepH * TILE });
-        stars.push({ x: sx + TILE, y: GROUND_Y - stepH * TILE - 30, taken: false });
+    // 1. Ворота с вопросом — в середине куска
+    const tileIndex = Math.round(x / TILE);
+    const gateTile = Math.round(length / 2);
+    const hasGate = tileIndex + length / 2 >= nextGate && length >= 8;
+    if (hasGate) {
+      // Ворота от неба до земли — их не перепрыгнуть
+      gates.push({ x: x + gateTile * TILE, y: 30, h: GROUND_Y - 30, open: false, lock: 0 });
+      nextGate = tileIndex + LAB.gateEvery;
+      for (let i = gateTile - 1; i <= gateTile + 1; i++) busy.add(i);
+    }
+
+    // 2. Ступенька — не у краёв куска и не рядом с воротами.
+    //    После неё минимум 5 клеток земли: прыжок со ступеньки летит
+    //    дальше обычного и не должен заканчиваться в яме
+    if (length >= 10 && Math.random() < 0.5) {
+      const stepTile = Math.round(rand(3, length - 7));
+      if (!hasGate || Math.abs(stepTile - gateTile) >= 3) {
+        const stepH = Math.random() < 0.5 ? 1 : 2;
+        const top = GROUND_Y - stepH * TILE;
+        blocks.push({ x: x + stepTile * TILE, y: top, w: TILE * 2, h: stepH * TILE });
+        stars.push({ x: x + (stepTile + 1) * TILE, y: top - 32 }); // звезда над серединой ступеньки
+        for (let i = stepTile - 1; i <= stepTile + 2; i++) busy.add(i);
       }
     }
 
-    // Звёзды дугой
-    if (Math.random() < 0.6) {
-      const sx = x + TILE * 2;
-      for (let i = 0; i < 4; i++) stars.push({ x: sx + i * 34, y: GROUND_Y - 70 - Math.sin(i / 3 * Math.PI) * 50, taken: false });
+    // 3. Свободный отрезок: самый длинный кусок без ворот и ступеньки
+    const span = longestFreeSpan(length, busy);
+
+    // 4. Дуга из 5 звёзд — ровно по центру свободного отрезка
+    if (span && span.tiles >= 4 && Math.random() < 0.6) {
+      addStarRow(x + span.center * TILE, GROUND_Y - 60, 5, 50);
     }
 
-    // Ворота с вопросом
-    if (hasGate) {
-      // Ворота от неба до земли — их не перепрыгнуть
-      gates.push({ x: gateX, y: 30, h: GROUND_Y - 30, open: false, lock: 0 });
-      nextGate = tileIndex + LAB.gateEvery;
-    } else if (length >= 8 && Math.random() < 0.7 * LAB.enemyAmount) {
-      // Враг ходит по куску земли туда-сюда
-      addEnemy(chunk.x + TILE, chunk.x + chunk.w - TILE, theme.enemies[Math.floor(Math.random() * theme.enemies.length)], false);
-      if (LAB.enemyAmount > 1 && Math.random() < 0.5) addEnemy(chunk.x + TILE, chunk.x + chunk.w - TILE, theme.enemies[0], false);
+    // 5. Враг ходит только по свободному отрезку — до ступеньки не доходит,
+    //    а от краёв куска держится минимум в 2 клетках, чтобы у ямы
+    //    не приходилось прыгать раньше времени
+    const enemyFrom = span ? Math.max(span.from, 2) : 0;
+    const enemyTo = span ? Math.min(span.to, length - 3) : 0;
+    if (!hasGate && span && enemyTo - enemyFrom + 1 >= 3 && Math.random() < 0.7 * LAB.enemyAmount) {
+      const left = x + enemyFrom * TILE;
+      const right = x + (enemyTo + 1) * TILE;
+      addEnemy(left, right, theme.enemies[Math.floor(Math.random() * theme.enemies.length)], false);
+      if (LAB.enemyAmount > 1 && Math.random() < 0.5) addEnemy(left, right, theme.enemies[0], false);
     }
     x += length * TILE;
   }
@@ -527,6 +546,9 @@ function buildLevel() {
   if (isBossLevel) addEnemy(finish.x + TILE * 2, finish.x + TILE * 11, theme.boss.emoji, true);
   flag = { x: finish.x + TILE * 13, y: GROUND_Y - TILE * 2 };
   levelEnd = finish.x + finish.w;
+  // Стена в конце уровня: за финиш не убежать и с края не упасть
+  // (на уровне с боссом флаг работает только после победы над ним)
+  blocks.push({ x: levelEnd - TILE, y: GROUND_Y - TILE * 8, w: TILE, h: TILE * 8 });
 
   // Проверяем, что до каждой звезды можно добраться
   placeStarsSafely();
@@ -540,12 +562,34 @@ function buildLevel() {
   game.cameraX = 0;
 }
 
-// Звёзды ставятся в разных местах уровня и иногда попадают
-// внутрь ступеньки. Здесь каждая звезда проверяется:
-//   внутри блока → поднимаем на его верх;
-//   под ней пропасть → убираем;
-//   выше прыжка от опоры под ней → опускаем;
-//   ближе 30 пикселей к другой звезде → убираем (не накладываются).
+// Ряд звёзд с одинаковым шагом 36 пикселей, по центру в точке cx.
+// arc > 0 — ряд выгибается дугой вверх на arc пикселей
+function addStarRow(cx, y, count, arc) {
+  for (let i = 0; i < count; i++) {
+    const t = count > 1 ? i / (count - 1) : 0.5;
+    stars.push({ x: cx + (i - (count - 1) / 2) * 36, y: y - Math.sin(t * Math.PI) * arc });
+  }
+}
+
+// Самый длинный отрезок свободных клеток куска (без крайних клеток).
+// Возвращает { from, to, tiles, center } в клетках от начала куска
+function longestFreeSpan(length, busy) {
+  let best = null;
+  let from = null;
+  for (let i = 1; i <= length - 1; i++) {
+    const free = i <= length - 2 && !busy.has(i);
+    if (free && from === null) from = i;
+    if (!free && from !== null) {
+      const tiles = i - from;
+      if (!best || tiles > best.tiles) best = { from: from, to: i - 1, tiles: tiles, center: from + tiles / 2 };
+      from = null;
+    }
+  }
+  return best;
+}
+
+// Страховка: звезда без опоры или выше прыжка не остаётся на уровне.
+// При правильной генерации эта проверка ничего не меняет
 function placeStarsSafely() {
   const jumpHeight = hero.jump * hero.jump / (2 * GRAVITY); // высота прыжка
   for (const s of stars) {
